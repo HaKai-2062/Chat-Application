@@ -1,0 +1,9 @@
+.vs/
+x64/
+x86/
+
+Client/x64/
+Server/x64/
+
+Client/x86/
+Server/x86/
