@@ -1,6 +1,8 @@
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <iomanip>
+#include <unordered_map>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -8,11 +10,9 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-#include "imguiRender.h"
 #include "render.h"
-
-#include "playerStruct.h"
-
+// Very bad to do
+#include "client.h"
 
 bool scroll = true;
 bool scrollToBotton = false;
@@ -216,13 +216,35 @@ void onImGuiRender()
 	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
 	ImGui::Begin("##playerList");
 
+
+	uint32_t playerSize = static_cast<uint32_t>(Client::playerList.size());
+
 	ImGui::Text("Online [");
 	ImGui::SameLine();
-	ImGui::Text("13");
+	ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, std::to_string(playerSize).c_str());
 	ImGui::SameLine();
 	ImGui::Text("]");
 
 	ImGui::Separator();
+
+	const float footer_height_to_reserve2 = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+	if (ImGui::BeginChild("ScrollingRegion2", ImVec2(0, -footer_height_to_reserve2), false, ImGuiWindowFlags_HorizontalScrollbar))
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+		ImGui::SetCursorPosY(8.0f);
+		
+		for (auto i = Client::playerList.begin(); i != Client::playerList.end(); i++)
+		{
+			ImVec4 color = { i->second.color[0], i->second.color[1], i->second.color[2], i->second.color[3] };
+			const char* playerNmae = i->second.name;
+
+			ImGui::TextColored(color, playerNmae);
+		}
+		ImGui::PopStyleVar();
+	}
+	ImGui::EndChild();
+	
+
 	/*
 	ImGuiID parent_node = ImGui::DockBuilderAddNode();
 	ImGui::DockBuilderSetNodePos(parent_node, ImGui::GetWindowPos());
@@ -261,7 +283,6 @@ void onImGuiCleanUp()
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
-
 
 // Dark Theme for ImGui
 // Source: https://github.com/ocornut/imgui/issues/707#issuecomment-917151020

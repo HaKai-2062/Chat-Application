@@ -1,8 +1,7 @@
 #define OLC_PGEX_NETWORK
 #include "olcPGEX/olcPGEX_Network.h"
-#include "playerStruct.h"
 
-// Multiple players can have this
+#include "playerStruct.h"
 
 class Client : public olc::net::client_interface<olc::net::ChatMsg>
 {
@@ -71,7 +70,7 @@ public:
 				{
 					olc::net::playerStruct desc;
 					msg >> desc;
-					mapObjects.insert_or_assign(desc.uniqueID, desc);
+					playerList.insert_or_assign(desc.uniqueID, desc);
 
 					if (desc.uniqueID == clientInfo->uniqueID)
 					{
@@ -85,18 +84,19 @@ public:
 				{
 					uint32_t nRemovalID = 0;
 					msg >> nRemovalID;
-					mapObjects.erase(nRemovalID);
+					playerList.erase(nRemovalID);
 					break;
 				}
 
 				case(olc::net::ChatMsg::Server_UpdatePlayer):
 				{
+					/*
 					olc::net::playerStruct desc;
 					msg >> desc;
 					std::cout << desc.name;
 					std::cout << "[@" << desc.uniqueID << "]: ";
 					std::cout << desc.message << std::endl;
-					break;
+					break;*/
 				}
 				default:
 					break;
@@ -108,8 +108,9 @@ public:
 			//std::cout << "Waiting to connect.............\n";
 		}
 	}
+public:
+	static std::unordered_map<uint32_t, olc::net::playerStruct> playerList;
 private:
-	std::unordered_map<uint32_t, olc::net::playerStruct> mapObjects;
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
 	bool m_WaitingForConnection = true;
 };

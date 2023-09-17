@@ -8,6 +8,8 @@
 // Figure out a way to abstract into a header file
 #include "client.h"
 
+std::unordered_map<uint32_t, olc::net::playerStruct> Client::playerList;
+
 int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
