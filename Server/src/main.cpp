@@ -107,6 +107,10 @@ protected:
 				messageHistoryBuffer.bufferSize = static_cast<uint32_t>(myFile.gcount());
 				msgHistory << messageHistoryBuffer;
 				MessageClient(client, msgHistory);
+				
+				// Clear the buffer and bufferSize to default
+				std::memset(messageHistoryBuffer.messageBuffer, '\0', sizeof(messageHistoryBuffer.messageBuffer));
+				messageHistoryBuffer.bufferSize = 1024;
 			}
 			myFile.close();
 			break;

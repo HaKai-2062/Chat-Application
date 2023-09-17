@@ -106,8 +106,6 @@ public:
 						myFile.write(messageHistoryBuffer.messageBuffer, messageHistoryBuffer.bufferSize);
 						myFile.close();
 					}
-					std::cout << messageHistoryBuffer.bufferSize << std::endl;
-
 					break;
 				}
 
