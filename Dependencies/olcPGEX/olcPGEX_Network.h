@@ -99,7 +99,7 @@ namespace olc
 
 			Client_Accepted,
 			Client_AssignID,
-			Client_SentMessage,
+			Client_MessageSent,
 			Client_RegisterWithServer,
 			Client_UnregisterWithServer,
 

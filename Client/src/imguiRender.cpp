@@ -11,13 +11,19 @@
 #include "misc/cpp/imgui_stdlib.h"
 
 #include "render.h"
+// included playerStruct.h because of fileName
+// TDL: find a better way to stream data 
+//		instead of reading/writing to a file
+#include "playerStruct.h"
+
 // Very bad to do
 #include "client.h"
 
 bool scroll = true;
 bool scrollToBotton = false;
 bool show_demo_window = false;
-const char* fileName = "secretChatHistory.txt";
+
+
 
 namespace ImGui { void DarkTheme(); }
 

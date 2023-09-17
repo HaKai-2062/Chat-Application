@@ -1,3 +1,8 @@
+#pragma once
+
+#include <fstream>
+#include <iomanip>
+
 #define OLC_PGEX_NETWORK
 #include "olcPGEX/olcPGEX_Network.h"
 
@@ -33,7 +38,7 @@ public:
 			if (strcmp(clientInfo->message, ""))
 			{
 				olc::net::message<olc::net::ChatMsg> msg;
-				msg.header.id = olc::net::ChatMsg::Server_UpdatePlayer;
+				msg.header.id = olc::net::ChatMsg::Client_MessageSent;
 				msg << *clientInfo;
 				Send(msg);
 
@@ -88,15 +93,23 @@ public:
 					break;
 				}
 
-				case(olc::net::ChatMsg::Server_UpdatePlayer):
+				case(olc::net::ChatMsg::Client_MessageSent):
 				{
-					/*
 					olc::net::playerStruct desc;
 					msg >> desc;
-					std::cout << desc.name;
-					std::cout << "[@" << desc.uniqueID << "]: ";
-					std::cout << desc.message << std::endl;
-					break;*/
+					std::fstream uidlFile(fileName, std::fstream::app);
+					if (uidlFile.is_open())
+					{
+						uidlFile << desc.name << ":"
+							<< std::setprecision(2)
+							<< desc.color[0] << ','
+							<< desc.color[1] << ','
+							<< desc.color[2] << ','
+							<< desc.color[3]
+							<< ":" << desc.message << "\n";
+						uidlFile.close();
+					}
+					break;
 				}
 				default:
 					break;

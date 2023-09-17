@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
 
-// unique to our player
+static const char* fileName = "secretChatHistory.txt";
+
+// Singleton unique to only the instance of our Client
 class s_PlayerInfo
 {
 public:

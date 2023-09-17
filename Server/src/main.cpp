@@ -66,7 +66,7 @@ protected:
 		switch (msg.header.id)
 		{
 		case olc::net::ChatMsg::Client_RegisterWithServer:
-		{
+		{ 
 			olc::net::playerStruct desc;
 			msg >> desc;
 			desc.uniqueID = client->GetID();
@@ -98,15 +98,17 @@ protected:
 			break;
 		}
 
-		case olc::net::ChatMsg::Server_UpdatePlayer:
+		case olc::net::ChatMsg::Client_MessageSent:
 		{
+			// Simply bounce the message to everyone except the client which sent the message
+			MessageAllClients(msg, client);
+
+			// Log the message to server console
 			olc::net::playerStruct desc;
 			msg >> desc;
 			if (desc.message[0] == '\0')
 				break;
 			std::cout << desc.name << "[@" << desc.uniqueID << "]: " << desc.message << std::endl;
-			// Simply bounce update to everyone except incoming client
-			MessageAllClients(msg, client);
 			break;
 		}
 
