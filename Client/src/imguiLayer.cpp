@@ -3,6 +3,9 @@
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
+#include <chrono>
+#include <thread>
+#include <algorithm>
 
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -64,30 +67,6 @@ void ImGuiLayer::onImGuiFrameStart()
 		ImGui::ShowDemoWindow(&show_demo_window);
 }
 
-void ImGuiLayer::processConsoleInput(char* messageBuffer)
-{
-	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
-	strncpy_s(clientInfo->message, messageBuffer, sizeof(clientInfo->message));
-
-	std::fstream uidlFile(fileName, std::fstream::app);
-	if (uidlFile.is_open())
-	{
-		uidlFile << clientInfo->name << ":" 
-			<< std::setprecision(2)
-			<< clientInfo->color[0] << ',' 
-			<< clientInfo->color[1] << ','
-			<< clientInfo->color[2] << ','
-			<< clientInfo->color[3]
-			<< ":" << messageBuffer << "\n";
-		uidlFile.close();
-	}
-}
-
-void ImGuiLayer::ImGuiRendered()
-{
-	ImGui::Render();
-}
-
 uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
@@ -114,7 +93,6 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		if (ImGui::Button("Connect"))
 		{
 			ImGui::EndPopup();
-			ImGui::Render();
 			return 1;
 		}
 		ImGui::SameLine();
@@ -156,37 +134,47 @@ void ImGuiLayer::onImGuiRender()
 		ImGui::SetCursorPosY(8.0f);
 
 		std::string messageHistory;
+		
 		std::ifstream myFile(fileName);
-		while (std::getline(myFile, messageHistory))
+		if (myFile.is_open())
 		{
-			s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
-			if (!filter.PassFilter(messageHistory.c_str()))
-				continue;
-
-			// name:color.x,y,z:message
-			char* colorAndMessage = nullptr;
-			char* colorArray = nullptr;
-			char* message = nullptr;
-			char* name = nullptr;
-
-			name = strtok_s(messageHistory.data(), ":", &colorAndMessage);
-			colorArray = strtok_s(colorAndMessage, ":", &message);
-			
-			float color[4] =
+			while (std::getline(myFile, messageHistory))
 			{
-				std::strtof(strtok_s(colorArray, ",", &colorArray), nullptr),
-				std::strtof(strtok_s(colorArray, ",", &colorArray), nullptr),
-				std::strtof(strtok_s(colorArray, ",", &colorArray), nullptr),
-				std::strtof(strtok_s(colorArray, ",", &colorArray), nullptr)
-			};
+				s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
+				if (!filter.PassFilter(messageHistory.c_str()))
+					continue;
 
-			ImGui::TextColored({color[0],color[1],color[2],color[3]}, name);
-			ImGui::SameLine();
-			ImGui::TextUnformatted(":");
-			ImGui::SameLine();
-			ImGui::TextUnformatted(message);
+				// name|color.x|y|z|message				
+				// The message doesnt follow our condition so skip it
+				if (std::count(messageHistory.begin(), messageHistory.end(), '|') != 5)
+					continue;
+
+				char* colorAndMessage = nullptr;
+				char* colorArray = nullptr;
+				char* message = nullptr;
+				char* name = nullptr;
+
+				// if it does not fall under our format then simply skip that line by continue;
+				// it can be triggered when our history is being downloaded
+
+				name = strtok_s(messageHistory.data(), "|", &colorAndMessage);
+
+				float color[4] =
+				{
+					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "|", &message)		, nullptr)
+				};
+
+				ImGui::TextColored({ color[0],color[1],color[2],color[3] }, name);
+				ImGui::SameLine();
+				ImGui::TextUnformatted(":");
+				ImGui::SameLine();
+				ImGui::TextUnformatted(message);
+			}
+			myFile.close();
 		}
-		myFile.close();
 
 		if (scrollToBotton || (scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
 			ImGui::SetScrollHereY(1.0f);
@@ -268,6 +256,11 @@ void ImGuiLayer::onImGuiRender()
 	ImGui::End();
 }
 
+void ImGuiLayer::ImGuiRendered()
+{
+	ImGui::Render();
+}
+
 void ImGuiLayer::onImGuiFrameEnd()
 {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -287,6 +280,48 @@ void ImGuiLayer::onImGuiCleanUp()
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+}
+
+void ImGuiLayer::AwaitingConnection()
+{
+	bool popupOpen = false;
+	ImGui::OpenPopup("Connecting......");
+	popupOpen = ImGui::BeginPopupModal("Connecting......", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+	if (popupOpen)
+	{
+		ImGui::Text("Attempting to connect to the server");
+		if (Client::m_FailedTheConnection)
+		{
+			ImGui::Text("Failed to connect to the server");
+			ImGui::Text("Make sure you have entered correct IP Address and port number");
+		}
+		else if (Client::m_WaitingForConnection)
+		{
+			ImGui::Text("BeepBop...");
+		}
+	}
+
+	ImGui::EndPopup();
+}
+
+void ImGuiLayer::processConsoleInput(char* messageBuffer)
+{
+	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
+	strncpy_s(clientInfo->message, messageBuffer, sizeof(clientInfo->message));
+
+	std::ofstream myFile(fileName, std::ios::app);
+	if (myFile.is_open())
+	{
+		myFile << clientInfo->name << "|"
+			<< std::setprecision(2)
+			<< clientInfo->color[0] << '|'
+			<< clientInfo->color[1] << '|'
+			<< clientInfo->color[2] << '|'
+			<< clientInfo->color[3]
+			<< "|" << messageBuffer << "\n";
+		myFile.close();
+	}
 }
 
 // Dark Theme for ImGui

@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <filesystem>
 
 #define OLC_PGEX_NETWORK
 #include "olcPGEX/olcPGEX_Network.h"
@@ -93,22 +94,39 @@ public:
 					playerList.erase(nRemovalID);
 					break;
 				}
+				
+				case(olc::net::ChatMsg::Server_MessageHistorySent):
+				{
+					olc::net::messageHistory messageHistoryBuffer;
+					msg >> messageHistoryBuffer;
+					
+					std::ofstream myFile(fileName, std::ios::app);
+					if (myFile.is_open())
+					{
+						myFile.write(messageHistoryBuffer.messageBuffer, messageHistoryBuffer.bufferSize);
+						myFile.close();
+					}
+					std::cout << messageHistoryBuffer.bufferSize << std::endl;
+
+					break;
+				}
 
 				case(olc::net::ChatMsg::Client_MessageSent):
 				{
 					olc::net::playerStruct desc;
 					msg >> desc;
-					std::fstream uidlFile(fileName, std::fstream::app);
-					if (uidlFile.is_open())
+					
+					std::ofstream myFile(fileName, std::ios::app);
+					if (myFile.is_open())
 					{
-						uidlFile << desc.name << ":"
+						myFile << desc.name << ":"
 							<< std::setprecision(2)
 							<< desc.color[0] << ','
 							<< desc.color[1] << ','
 							<< desc.color[2] << ','
 							<< desc.color[3]
 							<< ":" << desc.message << "\n";
-						uidlFile.close();
+						myFile.close();
 					}
 					break;
 				}
@@ -119,13 +137,12 @@ public:
 		}
 	}
 
-	bool HasClientConnected() { return !m_WaitingForConnection; }
-	bool HasConnectionFailed() { return m_FailedTheConnection; }
 public:
-	// Should set a getter for this
+	// Very bad approach on setting these as static
+	// TDL: Make a separate header/cpp for each definition
 	static std::unordered_map<uint32_t, olc::net::playerStruct> playerList;
+	static bool m_WaitingForConnection;
+	static bool m_FailedTheConnection;
 private:
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
-	bool m_WaitingForConnection = true;
-	bool m_FailedTheConnection = false;
 };

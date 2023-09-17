@@ -92,10 +92,17 @@ namespace olc
 			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		};
 
+		struct messageHistory
+		{
+			uint32_t bufferSize = 1024;
+			char messageBuffer[1024];
+		};
+
 		enum class ChatMsg : uint32_t
 		{
 			Server_GetStatus,
 			Server_GetPing,
+			Server_MessageHistorySent,
 
 			Client_Accepted,
 			Client_AssignID,

@@ -10,6 +10,9 @@
 
 std::unordered_map<uint32_t, olc::net::playerStruct> Client::playerList;
 
+bool Client::m_WaitingForConnection = true;
+bool Client::m_FailedTheConnection = false;
+
 int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
@@ -30,7 +33,7 @@ int main(int, char**)
     ImGuiLayer::initializeImGui(window, glsl_version);
 
     Client* myClient = nullptr;
-    bool modalOpened = false;
+    bool connectButtonPressed = false;
 
     // 0: Default value and connectionModal will stay open in this
     // 1: Connect button was pressed
@@ -45,28 +48,37 @@ int main(int, char**)
         // Connect Button was pressed
         if (returnType == 1)
         {
-            if (!modalOpened)
+            if (!connectButtonPressed)
             {
-                const char* pName = playerName.c_str();
-                const char* ip = ipAddress.c_str();
-                myClient = new Client(pName, ip, port);
-                modalOpened = true;
+                // playerName is empty so end the frame
+                // and display setupconectionaModal again
+                if (playerName.empty())
+                {
+                    returnType = 0;
+                    ImGuiLayer::ImGuiRendered();
+                    Renderer::onFrameEnd(window);
+                    ImGuiLayer::onImGuiFrameEnd();
+                    Renderer::rendererSwapBuffers(window);
+
+                    continue;
+                }
+                else
+                {
+                    const char* pName = playerName.c_str();
+                    const char* ip = ipAddress.c_str();
+                    myClient = new Client(pName, ip, port);
+                    connectButtonPressed = true;
+                }
             }
 
             myClient->OnClientUpdate();
-
-            if (myClient && !myClient->HasClientConnected())
+            
+            if (myClient && myClient->m_WaitingForConnection)
             {
-                // We are attempting to connect so create a Connecting....
-                //std::cout << "Attempting to connect to the server.....\n";
-               // std::cout << "Downloading Server Messages\n";
-                //ImGuiLayer::
-                // add some wait ???
-
+                ImGuiLayer::AwaitingConnection();
             }
-            else if (myClient && myClient->HasClientConnected())
+            else
             {
-                // Client is connected and has the server chat history
                 ImGuiLayer::onImGuiRender();
             }
         }

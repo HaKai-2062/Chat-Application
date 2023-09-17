@@ -1,8 +1,13 @@
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <filesystem>
+
 #define OLC_PGEX_NETWORK
 #include "olcPGEX/olcPGEX_Network.h"
 
 uint32_t clientID = 10000;
+const char* fileName = "secretChatHistory.txt";
 
 class ChatServer : public olc::net::server_interface<olc::net::ChatMsg>
 {
@@ -89,7 +94,21 @@ protected:
 				msgAddOtherPlayers << player.second;
 				MessageClient(client, msgAddOtherPlayers);
 			}
-
+			
+			// Send it in buffers and client should receive in buffers
+			olc::net::messageHistory messageHistoryBuffer;
+			olc::net::message<olc::net::ChatMsg> msgHistory;
+			msgHistory.header.id = olc::net::ChatMsg::Server_MessageHistorySent;
+			std::ifstream myFile(fileName);
+			while(!myFile.eof())
+			{
+				myFile.read(messageHistoryBuffer.messageBuffer, messageHistoryBuffer.bufferSize-1);
+				messageHistoryBuffer.messageBuffer[myFile.gcount()] = '\0';
+				messageHistoryBuffer.bufferSize = static_cast<uint32_t>(myFile.gcount());
+				msgHistory << messageHistoryBuffer;
+				MessageClient(client, msgHistory);
+			}
+			myFile.close();
 			break;
 		}
 
@@ -109,9 +128,22 @@ protected:
 			if (desc.message[0] == '\0')
 				break;
 			std::cout << desc.name << "[@" << desc.uniqueID << "]: " << desc.message << std::endl;
+
+			// Append to a file
+			std::ofstream myFile(fileName, std::ios::app);
+			if (myFile.is_open())
+			{
+				myFile << desc.name << "|"
+					<< std::setprecision(2)
+					<< desc.color[0] << '|'
+					<< desc.color[1] << '|'
+					<< desc.color[2] << '|'
+					<< desc.color[3]
+					<< "|" << desc.message << "\n";
+				myFile.close();
+			}
 			break;
 		}
-
 		}
 	}
 };

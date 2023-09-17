@@ -3,14 +3,16 @@ struct GLFWwindow;
 
 namespace ImGuiLayer {
 	void DarkTheme();
+	void AwaitingConnection();
 	void processConsoleInput(char* messageBuffer);
 	uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber);
 
+
 	void initializeImGui(GLFWwindow* window, const char* glsl_version);
-	void onImGuiRender();
 	void onImGuiFrameStart();
-	void onImGuiFrameEnd();
+	void onImGuiRender();
 	void ImGuiRendered();
+	void onImGuiFrameEnd();
 	void onImGuiCleanUp();
 }
 
