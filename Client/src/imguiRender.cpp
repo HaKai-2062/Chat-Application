@@ -4,13 +4,14 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 #include "imguiRender.h"
 #include "render.h"
 
-bool quit = false;
+#include "playerStruct.h"
+
 bool show_demo_window = true;
-bool connectModalOpened = false;
 const char* fileName = "secretChatHistory.txt";
 
 void initializeImGui(GLFWwindow* window, const char* glsl_version)
@@ -54,123 +55,124 @@ void onImGuiFrameStart()
 
 void processConsoleInput(char* messageBuffer)
 {
+	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
+	strncpy_s(clientInfo->playerMessage, messageBuffer, sizeof(clientInfo->playerMessage));
+
 	std::fstream uidlFile(fileName, std::fstream::app);
 	if (uidlFile.is_open())
 	{
-		uidlFile << messageBuffer << "\n";
+		uidlFile << clientInfo->playerName << ": " << messageBuffer << "\n";
 		uidlFile.close();
 	}
 }
 
-void createConnectionModal()
+uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber)
 {
-	static char playerName[256], ipAddress[256], portNumber[256];
-	ImGui::Text("Name:");
-	ImGui::InputText("##playerName", playerName, sizeof(playerName));
+	bool popupOpen = false;
+	ImGui::OpenPopup("Connect to server");
+	popupOpen = ImGui::BeginPopupModal("Connect to server", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-	ImGui::Text("IP");
-	ImGui::InputText("##ip", ipAddress, sizeof(ipAddress));
+	std::string myPort = std::to_string(portNumber);
 
-	ImGui::Text("Port");
-	ImGui::InputText("##port", portNumber, sizeof(portNumber));
-
-	if (ImGui::Button("Connect"))
+	if (popupOpen)
 	{
-		// if ip valid then connect
-		// else resolve name and connect
-		connectModalOpened = true;
+		ImGui::Text("Name:");
+		ImGui::InputText("##playerName", &playerName);
+
+		ImGui::Text("IP");
+		ImGui::InputText("##ip", &ipAddress);
+
+		ImGui::Text("Port");
+		ImGui::InputText("##port", &myPort, ImGuiInputTextFlags_CharsDecimal);
+
+		if (ImGui::Button("Connect"))
+		{
+			ImGui::EndPopup();
+			ImGui::Render();
+			return 1;
+		}
+		if (ImGui::Button("Quit"))
+		{
+			ImGui::EndPopup();
+			return 2;
+		}
 	}
-	if (ImGui::Button("Quit"))
-	{
-		ImGui::EndPopup();
-		connectModalOpened = false;
-		quit = true;
-		return;
-	}
+
 	ImGui::EndPopup();
+	ImGui::Render();
+
+	return 0;
 }
 
 void onImGuiRender()
 {
-	if (!connectModalOpened)
+	bool scroll = true;
+	bool scrollToBotton = false;
+
+	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+
+	ImGui::Begin("##MessageLogger");
+
+	ImGui::Text("Search");
+	ImGui::SameLine();
+	ImGuiTextFilter filter;
+	filter.Draw("##search", 180);
+
+	ImGui::SameLine();
+	ImGui::Checkbox("Auto Scroll", &scroll);
+
+	ImGui::Separator();
+
+	// Reserve enough left-over height for 1 separator + 1 input text
+	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+	if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar))
 	{
-		bool popupOpen = false;
-		ImGui::OpenPopup("Connect to server");
-		popupOpen = ImGui::BeginPopupModal("Connect to server", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-		if (popupOpen)
-			createConnectionModal();
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+		ImGui::SetCursorPosY(8.0f);
+
+		std::string messageHistory;
+		std::ifstream myFile(fileName);
+		while (std::getline(myFile, messageHistory))
+		{
+			if (!filter.PassFilter(messageHistory.c_str()))
+				continue;
+			ImGui::TextUnformatted(messageHistory.c_str());
+		}
+		myFile.close();
+
+		if (scrollToBotton || (scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
+			ImGui::SetScrollHereY(1.0f);
+
+		scrollToBotton = false;
+		ImGui::PopStyleVar();
 	}
-	else
+	ImGui::EndChild();
+	ImGui::Separator();
+
+	static char messageBuffer[256];
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AllowTabInput;
+	ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.0f);
+	ImGuiIO& io = ImGui::GetIO();
+	if (ImGui::InputText("##chatConsole", messageBuffer, IM_ARRAYSIZE(messageBuffer), flags))
 	{
-		bool scroll = true;
-		bool scrollToBotton = false;
+		processConsoleInput(messageBuffer);
 
-		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-
-		ImGui::Begin("##MessageLogger");
-
-		ImGui::Text("Search");
-		ImGui::SameLine();
-		ImGuiTextFilter filter;
-		filter.Draw("##search", 180);
-
-		ImGui::SameLine();
-		ImGui::Checkbox("Auto Scroll", &scroll);
-
-		ImGui::Separator();
-
-		// Reserve enough left-over height for 1 separator + 1 input text
-		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-		if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), false, ImGuiWindowFlags_HorizontalScrollbar))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-			ImGui::SetCursorPosY(8.0f);
-
-			std::string messageHistory;
-			std::ifstream myFile(fileName);
-			while (std::getline(myFile, messageHistory))
-			{
-				if (!filter.PassFilter(messageHistory.c_str()))
-					continue;
-				ImGui::TextUnformatted(messageHistory.c_str());
-			}
-			myFile.close();
-
-			if (scrollToBotton || (scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
-				ImGui::SetScrollHereY(1.0f);
-
-			scrollToBotton = false;
-			ImGui::PopStyleVar();
-		}
-		ImGui::EndChild();
-		ImGui::Separator();
-
-		static char messageBuffer[256];
-		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AllowTabInput;
-		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.0f);
-		ImGuiIO& io = ImGui::GetIO();
-		if (ImGui::InputText("##chatConsole", messageBuffer, IM_ARRAYSIZE(messageBuffer), flags))
-		{
-			processConsoleInput(messageBuffer);
-
-			for (uint32_t i = 0; i < sizeof(messageBuffer); i++)
-				messageBuffer[i] = '\0';
-			ImGui::SetKeyboardFocusHere(-1);
-			scrollToBotton = true;
-		}
-
-		ImGui::SameLine();
-		if (ImGui::Button(("Send"), ImVec2(100.0f, 0.0f)))
-		{
-			processConsoleInput(messageBuffer);
-
-			for (uint32_t i = 0; i < sizeof(messageBuffer); i++)
-				messageBuffer[i] = '\0';
-			scrollToBotton = true;
-		}
-		ImGui::End();
+		for (uint32_t i = 0; i < sizeof(messageBuffer); i++)
+			messageBuffer[i] = '\0';
+		ImGui::SetKeyboardFocusHere(-1);
+		scrollToBotton = true;
 	}
 
+	ImGui::SameLine();
+	if (ImGui::Button(("Send"), ImVec2(100.0f, 0.0f)))
+	{
+		processConsoleInput(messageBuffer);
+
+		for (uint32_t i = 0; i < sizeof(messageBuffer); i++)
+			messageBuffer[i] = '\0';
+		scrollToBotton = true;
+	}
+	ImGui::End();
 	ImGui::Render();
 }
 

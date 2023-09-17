@@ -146,9 +146,11 @@
     <ClCompile Include="..\Dependencies\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\Dependencies\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\Dependencies\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\client.cpp" />
+    <ClCompile Include="..\Dependencies\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="src\client.h" />
     <ClCompile Include="src\imguiRender.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\playerStruct.cpp" />
     <ClCompile Include="src\render.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,8 +160,10 @@
     <ClInclude Include="..\Dependencies\imgui\imconfig.h" />
     <ClInclude Include="..\Dependencies\imgui\imgui.h" />
     <ClInclude Include="..\Dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\Dependencies\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\Dependencies\olcPGEX\olcPGEX_Network.h" />
     <ClInclude Include="src\imguiRender.h" />
+    <ClInclude Include="src\playerStruct.h" />
     <ClInclude Include="src\render.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

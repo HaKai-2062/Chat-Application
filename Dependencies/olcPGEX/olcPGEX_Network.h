@@ -1,7 +1,7 @@
-/*
+ï»¿/*
 	ASIO Based Networking olcPixelGameEngine Extension v1.0
 
-	Videos: 
+	Videos:
 	Part #1: https://youtu.be/2hNdkYInj4g
 	Part #2: https://youtu.be/UbjxGvrDrbw
 	Part #3: https://youtu.be/hHowZ3bWsio
@@ -51,7 +51,7 @@
 
 	Author
 	~~~~~~
-	David Barr, aka javidx9, ©OneLoneCoder 2019, 2020, 2021
+	David Barr, aka javidx9, ï¿½OneLoneCoder 2019, 2020, 2021
 
 */
 
@@ -80,26 +80,33 @@
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
 
-enum class ChatMsg : uint32_t
-{
-	Server_GetStatus,
-	Server_GetPing,
-
-	Client_Accepted,
-	Client_AssignID,
-	Client_SentMessage,
-	Client_RegisterWithServer,
-	Client_UnregisterWithServer,
-
-	Server_AddPlayer,
-	Server_RemovePlayer,
-	Server_UpdatePlayer
-};
-
 namespace olc
 {
 	namespace net
 	{
+		struct playerStruct
+		{
+			uint32_t uniqueID;
+			char playerName[32];
+			char playerMessage[1024];
+		};
+
+		enum class ChatMsg : uint32_t
+		{
+			Server_GetStatus,
+			Server_GetPing,
+
+			Client_Accepted,
+			Client_AssignID,
+			Client_SentMessage,
+			Client_RegisterWithServer,
+			Client_UnregisterWithServer,
+
+			Server_AddPlayer,
+			Server_RemovePlayer,
+			Server_UpdatePlayer
+		};
+
 		// Message
 
 		// Message Header is sent at start of all messages. The template allows us
@@ -157,7 +164,7 @@ namespace olc
 				std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
 
 				// Recalculate the message size
-				msg.header.size = (uint32_t)msg.size();
+				msg.header.size = static_cast<uint32_t>(msg.size());
 
 				// Return the target message so it can be "chained"
 				return msg;
@@ -180,11 +187,11 @@ namespace olc
 				msg.body.resize(i);
 
 				// Recalculate the message size
-				msg.header.size = (uint32_t)msg.size();
+				msg.header.size = static_cast<uint32_t>(msg.size());
 
 				// Return the target message so it can be "chained"
 				return msg;
-			}			
+			}
 		};
 
 
@@ -208,9 +215,9 @@ namespace olc
 				os << msg.msg;
 				return os;
 			}
-		};		
+		};
 
-		
+
 		// Queue
 		template<typename T>
 		class tsqueue
@@ -309,7 +316,7 @@ namespace olc
 			std::condition_variable cvBlocking;
 			std::mutex muxBlocking;
 		};
-		
+
 		// Connection
 		// Forward declare
 		template<typename T>
@@ -422,7 +429,7 @@ namespace olc
 			// Prime the connection to wait for incoming messages
 			void StartListening()
 			{
-				
+
 			}
 
 		public:
@@ -537,7 +544,7 @@ namespace olc
 				// convenient to work with.
 				asio::async_read(m_socket, asio::buffer(&m_msgTemporaryIn.header, sizeof(message_header<T>)),
 					[this](std::error_code ec, std::size_t length)
-					{						
+					{
 						if (!ec)
 						{
 							// A complete message header has been read, check if this message
@@ -574,7 +581,7 @@ namespace olc
 				// in the temporary message object, so just wait for the bytes to arrive...
 				asio::async_read(m_socket, asio::buffer(m_msgTemporaryIn.body.data(), m_msgTemporaryIn.body.size()),
 					[this](std::error_code ec, std::size_t length)
-					{						
+					{
 						if (!ec)
 						{
 							// ...and they have! The message is now complete, so add
@@ -666,10 +673,10 @@ namespace olc
 
 			// Once a full message is received, add it to the incoming queue
 			void AddToIncomingMessageQueue()
-			{				
+			{
 				// Shove it in queue, converting it to an "owned message", by initialising
 				// with the a shared pointer from this connection object
-				if(m_nOwnerType == owner::server)
+				if (m_nOwnerType == owner::server)
 					m_qMessagesIn.push_back({ this->shared_from_this(), m_msgTemporaryIn });
 				else
 					m_qMessagesIn.push_back({ nullptr, m_msgTemporaryIn });
@@ -713,13 +720,13 @@ namespace olc
 			uint32_t id = 0;
 
 		};
-		
+
 		// Client
 		template <typename T>
 		class client_interface
 		{
 		public:
-			client_interface() 
+			client_interface()
 			{}
 
 			virtual ~client_interface()
@@ -740,7 +747,7 @@ namespace olc
 
 					// Create connection
 					m_connection = std::make_unique<connection<T>>(connection<T>::owner::client, m_context, asio::ip::tcp::socket(m_context), m_qMessagesIn);
-					
+
 					// Tell the connection object to connect to server
 					m_connection->ConnectToServer(endpoints);
 
@@ -759,7 +766,7 @@ namespace olc
 			void Disconnect()
 			{
 				// If connection exists, and it's connected then...
-				if(IsConnected())
+				if (IsConnected())
 				{
 					// ...disconnect from server gracefully
 					m_connection->Disconnect();
@@ -789,12 +796,12 @@ namespace olc
 			void Send(const message<T>& msg)
 			{
 				if (IsConnected())
-					 m_connection->Send(msg);
+					m_connection->Send(msg);
 			}
 
 			// Retrieve queue of messages from server
 			tsqueue<owned_message<T>>& Incoming()
-			{ 
+			{
 				return m_qMessagesIn;
 			}
 
@@ -805,12 +812,12 @@ namespace olc
 			std::thread thrContext;
 			// The client has a single instance of a "connection" object, which handles data transfer
 			std::unique_ptr<connection<T>> m_connection;
-			
+
 		private:
 			// This is the thread safe queue of incoming messages from server
 			tsqueue<owned_message<T>> m_qMessagesIn;
 		};
-		
+
 		// Server
 		template<typename T>
 		class server_interface
@@ -884,15 +891,15 @@ namespace olc
 							std::cout << "[SERVER] New Connection: " << socket.remote_endpoint() << "\n";
 
 							// Create a new connection to handle this client 
-							std::shared_ptr<connection<T>> newconn = 
-								std::make_shared<connection<T>>(connection<T>::owner::server, 
+							std::shared_ptr<connection<T>> newconn =
+								std::make_shared<connection<T>>(connection<T>::owner::server,
 									m_asioContext, std::move(socket), m_qMessagesIn);
-							
-							
+
+
 
 							// Give the user server a chance to deny connection
 							if (OnClientConnect(newconn))
-							{								
+							{
 								// Connection allowed, so add to container of new connections
 								m_deqConnections.push_back(std::move(newconn));
 
@@ -946,7 +953,7 @@ namespace olc
 						std::remove(m_deqConnections.begin(), m_deqConnections.end(), client), m_deqConnections.end());
 				}
 			}
-			
+
 			// Send message to all clients
 			void MessageAllClients(const message<T>& msg, std::shared_ptr<connection<T>> pIgnoreClient = nullptr)
 			{
@@ -959,7 +966,7 @@ namespace olc
 					if (client && client->IsConnected())
 					{
 						// ..it is!
-						if(client != pIgnoreClient)
+						if (client != pIgnoreClient)
 							client->Send(msg);
 					}
 					else
@@ -1029,6 +1036,8 @@ namespace olc
 			{
 
 			}
+
+
 		protected:
 			// Thread Safe Queue for incoming message packets
 			tsqueue<owned_message<T>> m_qMessagesIn;
@@ -1048,5 +1057,4 @@ namespace olc
 		};
 	}
 }
-
 
