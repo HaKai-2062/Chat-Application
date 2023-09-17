@@ -30,7 +30,7 @@ int main(int, char**)
     Client* myClient = nullptr;
     bool clientRegistered = false;
 
-    // 0: this is default value
+    // 0: this is default value and connectionModal will stay open in this
     // 1: this means connect was pressed
     // 2: this means quit was pressed
     uint8_t returnType = 0;
@@ -42,7 +42,7 @@ int main(int, char**)
 
         // Connect Button was pressed
         // Note: Since setupConnectionModal has ImGui::Render() as well
-        //       so we have to avoid calling both onImGuiRender() and setipConnectionModal() in same frame
+        //       so we have to avoid calling both onImGuiRender() and setupConnectionModal() in same frame
         if (returnType == 1)
         {
             if (!clientRegistered)

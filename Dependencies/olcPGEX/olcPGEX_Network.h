@@ -86,9 +86,10 @@ namespace olc
 	{
 		struct playerStruct
 		{
-			uint32_t uniqueID;
-			char playerName[32];
-			char playerMessage[1024];
+			uint32_t uniqueID = 0;
+			char name[32] = "";
+			char message[1024] = "";
+			float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		};
 
 		enum class ChatMsg : uint32_t

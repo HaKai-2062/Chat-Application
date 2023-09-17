@@ -102,9 +102,9 @@ protected:
 		{
 			olc::net::playerStruct desc;
 			msg >> desc;
-			if (desc.playerMessage[0] == '\0')
+			if (desc.message[0] == '\0')
 				break;
-			std::cout << desc.playerName << "[@" << desc.uniqueID << "]: " << desc.playerMessage << std::endl;
+			std::cout << desc.name << "[@" << desc.uniqueID << "]: " << desc.message << std::endl;
 			// Simply bounce update to everyone except incoming client
 			MessageAllClients(msg, client);
 			break;
@@ -116,7 +116,7 @@ protected:
 
 int main()
 {
-	ChatServer server(60000);
+	ChatServer server(60'000);
 	server.Start();
 
 	while (true)

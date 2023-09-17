@@ -10,8 +10,8 @@ public:
 	Client() = delete;
 	Client(const char* name, const char* ip, uint16_t port)
 	{
-		strncpy_s(clientInfo->playerName, name, sizeof(clientInfo->playerName));
-		strcpy_s(clientInfo->playerMessage, "");
+		strncpy_s(clientInfo->name, name, sizeof(clientInfo->name));
+		strcpy_s(clientInfo->message, "");
 		if (!Connect(ip, port))
 		{
 			std::cout << "Error: Failed to connect to the server\n";
@@ -31,14 +31,14 @@ public:
 		{
 			// If our messageBuffer is not empty then
 			// forward client's meesageBuffer to the server
-			if (strcmp(clientInfo->playerMessage, ""))
+			if (strcmp(clientInfo->message, ""))
 			{
 				olc::net::message<olc::net::ChatMsg> msg;
 				msg.header.id = olc::net::ChatMsg::Server_UpdatePlayer;
 				msg << *clientInfo;
 				Send(msg);
 
-				strcpy_s(clientInfo->playerMessage, "");
+				strcpy_s(clientInfo->message, "");
 			}
 
 			while (!Incoming().empty())
@@ -93,9 +93,9 @@ public:
 				{
 					olc::net::playerStruct desc;
 					msg >> desc;
-					std::cout << desc.playerName;
+					std::cout << desc.name;
 					std::cout << "[@" << desc.uniqueID << "]: ";
-					std::cout << desc.playerMessage << std::endl;
+					std::cout << desc.message << std::endl;
 					break;
 				}
 				default:
