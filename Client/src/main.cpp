@@ -1,8 +1,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "render.h"
-#include "imguiRender.h"
+#include "renderer.h"
+#include "imguiLayer.h"
 
 // This includes alot of code to cpp
 // Figure out a way to abstract into a header file
@@ -18,60 +18,74 @@ int main(int, char**)
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
 
-    if (!createGLFWContext())
+    if (!Renderer::createGLFWContext())
         throw std::runtime_error("Failed to initialize GLFW");
 
-    GLFWwindow* window = createGLFWwindow();
+    GLFWwindow* window = Renderer::createGLFWwindow();
     if (window == nullptr)
         throw std::runtime_error("Failed to initialize window");
 
-    initializeGLFW(window);
+    Renderer::initializeGLFW(window);
 
-    initializeImGui(window, glsl_version);
+    ImGuiLayer::initializeImGui(window, glsl_version);
 
     Client* myClient = nullptr;
-    bool clientRegistered = false;
+    bool modalOpened = false;
 
-    // 0: this is default value and connectionModal will stay open in this
-    // 1: this means connect was pressed
-    // 2: this means quit was pressed
+    // 0: Default value and connectionModal will stay open in this
+    // 1: Connect button was pressed
+    // 2: Quit button was pressed
     uint8_t returnType = 0;
 
-    while (!crossButtonPressed(window))
+    while (!Renderer::crossButtonPressed(window))
     {
-        onFrameStart();
-        onImGuiFrameStart();
+        Renderer::onFrameStart();
+        ImGuiLayer::onImGuiFrameStart();
 
         // Connect Button was pressed
-        // Note: Since setupConnectionModal has ImGui::Render() as well
-        //       so we have to avoid calling both onImGuiRender() and setupConnectionModal() in same frame
         if (returnType == 1)
         {
-            if (!clientRegistered)
+            if (!modalOpened)
             {
                 const char* pName = playerName.c_str();
                 const char* ip = ipAddress.c_str();
                 myClient = new Client(pName, ip, port);
-                clientRegistered = true;
+                modalOpened = true;
             }
+
             myClient->OnClientUpdate();
-            onImGuiRender();
+
+            if (myClient && !myClient->HasClientConnected())
+            {
+                // We are attempting to connect so create a Connecting....
+                //std::cout << "Attempting to connect to the server.....\n";
+               // std::cout << "Downloading Server Messages\n";
+                //ImGuiLayer::
+                // add some wait ???
+
+            }
+            else if (myClient && myClient->HasClientConnected())
+            {
+                // Client is connected and has the server chat history
+                ImGuiLayer::onImGuiRender();
+            }
         }
         
         // Keep displaying the connectionModal
         if (returnType == 0)
-            returnType = setupConnectionModal(playerName, ipAddress, port);
+            returnType = ImGuiLayer::setupConnectionModal(playerName, ipAddress, port);
 
-
+        ImGuiLayer::ImGuiRendered();
+        
         // Quit button was pressed
         if (returnType == 2)
             break;
 
-        onFrameEnd(window);
-        onImGuiFrameEnd();
-        rendererSwapBuffers(window);
+        Renderer::onFrameEnd(window);
+        ImGuiLayer::onImGuiFrameEnd();
+        Renderer::rendererSwapBuffers(window);
     }
 
-    onImGuiCleanUp();
-    rendererCleanUp(window);
+    ImGuiLayer::onImGuiCleanUp();
+    Renderer::rendererCleanUp(window);
 }

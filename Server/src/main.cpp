@@ -2,7 +2,7 @@
 #define OLC_PGEX_NETWORK
 #include "olcPGEX/olcPGEX_Network.h"
 
-uint32_t clientID = 0;
+uint32_t clientID = 10000;
 
 class ChatServer : public olc::net::server_interface<olc::net::ChatMsg>
 {

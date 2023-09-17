@@ -10,7 +10,8 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-#include "render.h"
+#include "imguiLayer.h"
+#include "renderer.h"
 // included playerStruct.h because of fileName
 // TDL: find a better way to stream data 
 //		instead of reading/writing to a file
@@ -23,11 +24,7 @@ bool scroll = true;
 bool scrollToBotton = false;
 bool show_demo_window = false;
 
-
-
-namespace ImGui { void DarkTheme(); }
-
-void initializeImGui(GLFWwindow* window, const char* glsl_version)
+void ImGuiLayer::initializeImGui(GLFWwindow* window, const char* glsl_version)
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -43,7 +40,7 @@ void initializeImGui(GLFWwindow* window, const char* glsl_version)
 
 	//ImGui::StyleColorsDark();
 	//ImGui::StyleColorsLight();
-	ImGui::DarkTheme();
+	ImGuiLayer::DarkTheme();
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -56,7 +53,7 @@ void initializeImGui(GLFWwindow* window, const char* glsl_version)
 	ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-void onImGuiFrameStart()
+void ImGuiLayer::onImGuiFrameStart()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -67,7 +64,7 @@ void onImGuiFrameStart()
 		ImGui::ShowDemoWindow(&show_demo_window);
 }
 
-void processConsoleInput(char* messageBuffer)
+void ImGuiLayer::processConsoleInput(char* messageBuffer)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
 	strncpy_s(clientInfo->message, messageBuffer, sizeof(clientInfo->message));
@@ -86,7 +83,12 @@ void processConsoleInput(char* messageBuffer)
 	}
 }
 
-uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber)
+void ImGuiLayer::ImGuiRendered()
+{
+	ImGui::Render();
+}
+
+uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
 	bool popupOpen = false;
@@ -126,12 +128,11 @@ uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, ui
 	}
 
 	ImGui::EndPopup();
-	ImGui::Render();
 
 	return 0;
 }
 
-void onImGuiRender()
+void ImGuiLayer::onImGuiRender()
 {
 	ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
 
@@ -251,6 +252,7 @@ void onImGuiRender()
 	ImGui::EndChild();
 	
 
+	// TDL: Programmatically docking
 	/*
 	ImGuiID parent_node = ImGui::DockBuilderAddNode();
 	ImGui::DockBuilderSetNodePos(parent_node, ImGui::GetWindowPos());
@@ -264,26 +266,23 @@ void onImGuiRender()
 	*/
 
 	ImGui::End();
-
-
-	ImGui::Render();
 }
 
-void onImGuiFrameEnd()
+void ImGuiLayer::onImGuiFrameEnd()
 {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	ImGuiIO& io = ImGui::GetIO();  (void)io;
 
 	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
-		GLFWwindow* backup_current_context = getContext();
+		GLFWwindow* backup_current_context = Renderer::getContext();
 		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
-		makeContextCurrent(backup_current_context);
+		Renderer::makeContextCurrent(backup_current_context);
 	}
 }
 
-void onImGuiCleanUp()
+void ImGuiLayer::onImGuiCleanUp()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -292,7 +291,7 @@ void onImGuiCleanUp()
 
 // Dark Theme for ImGui
 // Source: https://github.com/ocornut/imgui/issues/707#issuecomment-917151020
-void ImGui::DarkTheme()
+void ImGuiLayer::DarkTheme()
 {
 	ImVec4* colors = ImGui::GetStyle().Colors;
 	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);

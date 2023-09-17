@@ -148,10 +148,10 @@
     <ClCompile Include="..\Dependencies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\Dependencies\imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="src\client.h" />
-    <ClCompile Include="src\imguiRender.cpp" />
+    <ClCompile Include="src\imguiLayer.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\playerStruct.cpp" />
-    <ClCompile Include="src\render.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Dependencies\imgui\backends\imgui_impl_glfw.h" />
@@ -162,9 +162,9 @@
     <ClInclude Include="..\Dependencies\imgui\imgui_internal.h" />
     <ClInclude Include="..\Dependencies\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="..\Dependencies\olcPGEX\olcPGEX_Network.h" />
-    <ClInclude Include="src\imguiRender.h" />
+    <ClInclude Include="src\imguiLayer.h" />
     <ClInclude Include="src\playerStruct.h" />
-    <ClInclude Include="src\render.h" />
+    <ClInclude Include="src\renderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

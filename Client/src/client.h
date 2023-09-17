@@ -18,12 +18,14 @@ public:
 		strcpy_s(clientInfo->message, "");
 		if (!Connect(ip, port))
 		{
+			m_FailedTheConnection = true;
 			std::cout << "Error: Failed to connect to the server\n";
 			return;
 		}
 
 		if (!IsConnected())
 		{
+			m_FailedTheConnection = true;
 			std::cout << "Error: Failed to connect to the server\n        Recheck the ip/port and try again!\n";
 			return;
 		}
@@ -76,7 +78,6 @@ public:
 					olc::net::playerStruct desc;
 					msg >> desc;
 					playerList.insert_or_assign(desc.uniqueID, desc);
-
 					if (desc.uniqueID == clientInfo->uniqueID)
 					{
 						// Now we exist in game world
@@ -116,14 +117,15 @@ public:
 				}
 			}
 		}
-		else if (m_WaitingForConnection)
-		{
-			//std::cout << "Waiting to connect.............\n";
-		}
 	}
+
+	bool HasClientConnected() { return !m_WaitingForConnection; }
+	bool HasConnectionFailed() { return m_FailedTheConnection; }
 public:
+	// Should set a getter for this
 	static std::unordered_map<uint32_t, olc::net::playerStruct> playerList;
 private:
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
 	bool m_WaitingForConnection = true;
+	bool m_FailedTheConnection = false;
 };

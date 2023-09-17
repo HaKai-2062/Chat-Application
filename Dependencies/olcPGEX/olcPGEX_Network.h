@@ -906,7 +906,7 @@ namespace olc
 
 								// And very important! Issue a task to the connection's
 								// asio context to sit and wait for bytes to arrive!
-								m_deqConnections.back()->ConnectToClient(this, nIDCounter++);
+								m_deqConnections.back()->ConnectToClient(this, ++nIDCounter);
 
 								std::cout << "[" << m_deqConnections.back()->GetID() << "] Connection Approved\n";
 							}
