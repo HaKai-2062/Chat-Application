@@ -33,6 +33,12 @@ void ImGuiLayer::initializeImGui(GLFWwindow* window, const char* glsl_version)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();  (void)io;
 
+	// Set default font
+	ImFontConfig fontConfig;
+	fontConfig.FontDataOwnedByAtlas = false;
+	ImFont* robotoFont = io.Fonts->AddFontFromFileTTF("fonts/RobotoRegular.ttf", 20.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+	io.FontDefault = robotoFont;
+
 	// Setup Dear ImGui context
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -191,20 +197,24 @@ void ImGuiLayer::onImGuiRender()
 	ImGuiIO& io = ImGui::GetIO();
 	if (ImGui::InputText("##chatConsole", messageBuffer, IM_ARRAYSIZE(messageBuffer), flags))
 	{
-		processConsoleInput(messageBuffer);
-
-		strcpy_s(messageBuffer, "");
-		ImGui::SetKeyboardFocusHere(-1);
-		scrollToBotton = true;
+		if (messageBuffer[0] != '\0')
+		{
+			ImGuiLayer::processConsoleInput(messageBuffer);
+			strcpy_s(messageBuffer, "");
+			ImGui::SetKeyboardFocusHere(-1);
+			scrollToBotton = true;
+		}
 	}
 
 	ImGui::SameLine();
 	if (ImGui::Button(("Send"), ImVec2(100.0f, 0.0f)))
 	{
-		processConsoleInput(messageBuffer);
-
-		strcpy_s(messageBuffer, "");
-		scrollToBotton = true;
+		if (messageBuffer[0] != '\0')
+		{
+			ImGuiLayer::processConsoleInput(messageBuffer);
+			strcpy_s(messageBuffer, "");
+			scrollToBotton = true;
+		}
 	}
 	ImGui::End();
 

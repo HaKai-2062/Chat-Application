@@ -67,6 +67,11 @@ int main(int, char**)
                     const char* pName = playerName.c_str();
                     const char* ip = ipAddress.c_str();
                     myClient = new Client(pName, ip, port);
+
+                    // Create messageHistory file or make it empty
+                    std::ofstream file(fileName, std::ofstream::out | std::ofstream::trunc);
+                    if (file.is_open())
+                        file.close();
                     connectButtonPressed = true;
                 }
             }
