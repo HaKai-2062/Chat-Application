@@ -16,8 +16,7 @@ bool Client::m_FailedTheConnection = false;
 int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
-    uint16_t port = 60'000;
-    std::string portString = std::to_string(port);
+    std::string portString = "60000";
 
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
@@ -67,6 +66,7 @@ int main(int, char**)
                 {
                     const char* pName = playerName.c_str();
                     const char* ip = ipAddress.c_str();
+                    uint16_t port = atoi(portString.c_str());
                     myClient = new Client(pName, ip, port);
 
                     // Create messageHistory file or make it empty

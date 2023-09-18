@@ -102,14 +102,15 @@ protected:
 			std::ifstream myFile(fileName);
 			while(!myFile.eof())
 			{
-				myFile.read(messageHistoryBuffer.messageBuffer, messageHistoryBuffer.bufferSize-1);
+				myFile.read(messageHistoryBuffer.messageBuffer, static_cast<std::streamsize>(messageHistoryBuffer.bufferSize - 1));
 				messageHistoryBuffer.messageBuffer[myFile.gcount()] = '\0';
 				messageHistoryBuffer.bufferSize = static_cast<uint32_t>(myFile.gcount());
 				msgHistory << messageHistoryBuffer;
 				MessageClient(client, msgHistory);
 				
-				// Clear the buffer and bufferSize to default
+				// Clear our buffers and reset bufferSize
 				std::memset(messageHistoryBuffer.messageBuffer, '\0', sizeof(messageHistoryBuffer.messageBuffer));
+				msgHistory.body.clear();
 				messageHistoryBuffer.bufferSize = 1024;
 			}
 			myFile.close();
@@ -154,7 +155,11 @@ protected:
 
 int main()
 {
-	ChatServer server(60'000);
+	std::cout << "Port: ";
+	uint32_t portNumber = 60'000;
+	std::cin >> portNumber;
+
+	ChatServer server(portNumber);
 	server.Start();
 
 	while (true)

@@ -8,5 +8,6 @@ Server/x64/
 
 Client/x86/
 Server/x86/
-/Client/imgui.ini
-/Client/secretChatHistory.txt
+
+*.ini
+*.txt

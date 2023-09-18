@@ -96,10 +96,11 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 
 		if (ImGui::Button("Connect"))
 		{
-			ImGui::EndPopup();
-			if (playerName.empty() || ipAddress.empty() || portNumber.empty())
-				return 0;
-			return 1;
+			if (!(playerName.empty() || ipAddress.empty() || portNumber.empty() || playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8))
+			{
+				ImGui::EndPopup();
+				return 1;
+			}
 		}
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(20.0f, 20.0f));
@@ -108,6 +109,16 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		{
 			ImGui::EndPopup();
 			return 2;
+		}
+
+		if (playerName.empty() || ipAddress.empty() || portNumber.empty())
+		{
+			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field can not be empty!");
+		}
+
+		if (playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8)
+		{
+			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field is too big!");
 		}
 	}
 
