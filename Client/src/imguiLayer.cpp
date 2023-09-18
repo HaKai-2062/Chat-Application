@@ -73,14 +73,12 @@ void ImGuiLayer::onImGuiFrameStart()
 		ImGui::ShowDemoWindow(&show_demo_window);
 }
 
-uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber)
+uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, std::string& portNumber)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
 	bool popupOpen = false;
 	ImGui::OpenPopup("Connect to server");
 	popupOpen = ImGui::BeginPopupModal("Connect to server", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-	std::string myPort = std::to_string(portNumber);
 
 	if (popupOpen)
 	{
@@ -94,11 +92,13 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		ImGui::InputText("##ip", &ipAddress);
 
 		ImGui::Text("Port");
-		ImGui::InputText("##port", &myPort, ImGuiInputTextFlags_CharsDecimal);
+		ImGui::InputText("##port", &portNumber, ImGuiInputTextFlags_CharsDecimal);
 
 		if (ImGui::Button("Connect"))
 		{
 			ImGui::EndPopup();
+			if (playerName.empty() || ipAddress.empty() || portNumber.empty())
+				return 0;
 			return 1;
 		}
 		ImGui::SameLine();

@@ -5,7 +5,7 @@ namespace ImGuiLayer {
 	void DarkTheme();
 	void AwaitingConnection();
 	void processConsoleInput(char* messageBuffer);
-	uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, uint16_t portNumber);
+	uint8_t setupConnectionModal(std::string& playerName, std::string& ipAddress, std::string& portNumber);
 
 
 	void initializeImGui(GLFWwindow* window, const char* glsl_version);

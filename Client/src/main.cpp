@@ -17,6 +17,7 @@ int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
     uint16_t port = 60'000;
+    std::string portString = std::to_string(port);
 
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
@@ -90,7 +91,7 @@ int main(int, char**)
         
         // Keep displaying the connectionModal
         if (returnType == 0)
-            returnType = ImGuiLayer::setupConnectionModal(playerName, ipAddress, port);
+            returnType = ImGuiLayer::setupConnectionModal(playerName, ipAddress, portString);
 
         ImGuiLayer::ImGuiRendered();
         
