@@ -80,15 +80,12 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 	
 	if (firstRun)
 	{
-		// Convert color string to float
 		char* temp1 = colorString.data();
-		char* temp2 = nullptr;
-		char* token = strtok_s(temp1, " ", &temp2);
-		for (uint8_t i = 0; i < 4; i++)
-		{
-			clientInfo->color[i] = static_cast<float>(std::atof(token));
-			token = strtok_s(nullptr, " ", &temp2);
-		}
+
+		clientInfo->color[0] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
+		clientInfo->color[1] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
+		clientInfo->color[2] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
+		clientInfo->color[3] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
 	}
 
 
@@ -114,6 +111,16 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		{
 			if (!(playerName.empty() || ipAddress.empty() || portNumber.empty() || playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8))
 			{
+				// Assign the color from imgui back to our string
+				colorString.clear();
+				for (uint8_t i = 0; i < 4; i++)
+				{
+					if (i == 3)
+						colorString = colorString + (std::to_string(clientInfo->color[i]));
+					else
+						colorString = colorString + (std::to_string(clientInfo->color[i])) + ',';
+				}
+
 				ImGui::EndPopup();
 				return 1;
 			}
@@ -123,6 +130,16 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		ImGui::SameLine();
 		if (ImGui::Button("Quit"))
 		{
+			// Assign the color from imgui back to our string
+			colorString.clear();
+			for (uint8_t i = 0; i < 4; i++)
+			{
+				if (i == 3)
+					colorString = colorString + (std::to_string(clientInfo->color[i]));
+				else
+					colorString = colorString + (std::to_string(clientInfo->color[i])) + ',';
+			}
+
 			ImGui::EndPopup();
 			return 2;
 		}
@@ -139,11 +156,14 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 	}
 
 	// Assign the color from imgui back to our string
-	colorString = "";
+	colorString.clear();
 	for (uint8_t i = 0; i < 4; i++)
-		colorString = colorString + std::to_string(clientInfo->color[i]) + ' ';
-	// To remove last comma added
-	colorString[colorString.size() - 1] = '\0';
+	{
+		if (i == 3)
+			colorString = colorString + (std::to_string(clientInfo->color[i]));
+		else
+			colorString = colorString + (std::to_string(clientInfo->color[i])) + ',';
+	}
 
 	ImGui::EndPopup();
 

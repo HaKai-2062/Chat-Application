@@ -19,7 +19,7 @@ void Load(std::string& playerName, std::string& ipAddress, std::string& portStri
 int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
-    std::string portString = "60000", colorString = "1.0 1.0 1.0 1.0";
+    std::string portString = "60000", colorString = "1.0,1.0,1.0,1.0";
 
     // Load variables on application startup
     Load(playerName, ipAddress, portString, colorString);
@@ -136,22 +136,36 @@ void Load(std::string& playerName, std::string& ipAddress, std::string& portStri
 {
     std::ifstream file(fileName);
 
-    if (!file.good())
+    if (file.fail())
     {
         std::ofstream newFile(fileName, std::ofstream::out | std::ofstream::trunc);
         if (newFile.is_open())
+        {
+            newFile << playerName << '\n';
+            newFile << ipAddress << '\n';
+            newFile << portString << '\n';
+            newFile << colorString << '\n';
             newFile.close();
+        }
         return;
     }
 
     if (file.is_open())
     {
-        if (std::count(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), '\n') == 4)
+        // This count apparently needs the file to be closed
+        uint32_t lineCount = static_cast<uint32_t>(std::count(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), '\n'));
+        file.close();
+
+        if (lineCount == 4)
         {
-            std::getline(file, playerName);
-            std::getline(file, ipAddress);
-            std::getline(file, portString);
-            std::getline(file, colorString);
+            file = std::ifstream(fileName);
+            if (file.is_open())
+            {
+                std::getline(file, playerName);
+                std::getline(file, ipAddress);
+                std::getline(file, portString);
+                std::getline(file, colorString);
+            }
         }
     }
     file.close();
