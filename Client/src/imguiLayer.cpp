@@ -23,6 +23,7 @@
 // Very bad to do
 #include "client.h"
 
+bool firstRun = true;
 bool scroll = true;
 bool scrollToBotton = false;
 bool show_demo_window = false;
@@ -73,9 +74,24 @@ void ImGuiLayer::onImGuiFrameStart()
 		ImGui::ShowDemoWindow(&show_demo_window);
 }
 
-uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, std::string& portNumber)
+uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, std::string& portNumber, std::string& colorString)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
+	
+	if (firstRun)
+	{
+		// Convert color string to float
+		char* temp1 = colorString.data();
+		char* temp2 = nullptr;
+		char* token = strtok_s(temp1, " ", &temp2);
+		for (uint8_t i = 0; i < 4; i++)
+		{
+			clientInfo->color[i] = static_cast<float>(std::atof(token));
+			token = strtok_s(nullptr, " ", &temp2);
+		}
+	}
+
+
 	bool popupOpen = false;
 	ImGui::OpenPopup("Connect to server");
 	popupOpen = ImGui::BeginPopupModal("Connect to server", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
@@ -121,6 +137,13 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field is too big!");
 		}
 	}
+
+	// Assign the color from imgui back to our string
+	colorString = "";
+	for (uint8_t i = 0; i < 4; i++)
+		colorString = colorString + std::to_string(clientInfo->color[i]) + ' ';
+	// To remove last comma added
+	colorString[colorString.size() - 1] = '\0';
 
 	ImGui::EndPopup();
 
