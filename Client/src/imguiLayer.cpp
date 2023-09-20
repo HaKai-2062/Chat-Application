@@ -77,7 +77,34 @@ void ImGuiLayer::onImGuiFrameStart()
 uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& ipAddress, std::string& portNumber, std::string& colorString)
 {
 	s_PlayerInfo* clientInfo = s_PlayerInfo::Get();
-	
+	bool popupOpen = false;
+	bool doColorNeedAdjustment = false;
+
+	float adjustedColor[4] = { clientInfo->color[0], clientInfo->color[1], clientInfo->color[2], clientInfo->color[3] };
+	float h = 0.0f, s = 0.0f, v = 0.0f;
+	ImGui::ColorConvertRGBtoHSV(adjustedColor[0], adjustedColor[1], adjustedColor[2], h, s, v);
+	h = h * 255;
+	s = s * 255;
+	v = v * 255;
+
+	// If darker color (purplish) selected then change color, otherwise check v range
+	if ((h > 150 && h < 200) || ((h <= 150 || h >= 200) && v < 120))
+	{
+		if (h > 150 && h < 200)
+			h = h - 50;
+
+		v = 255.0f;
+
+		h /= 255.0f;
+		v /= 255.0f;
+		s /= 255.0f;
+
+		// Store them back into my adjustedColor array and assign it on connect button pressed event
+		ImGui::ColorConvertHSVtoRGB(h, s, v, adjustedColor[0], adjustedColor[1], adjustedColor[2]);
+
+		doColorNeedAdjustment = true;
+	}
+
 	if (firstRun)
 	{
 		char* temp1 = colorString.data();
@@ -86,10 +113,11 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		clientInfo->color[1] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
 		clientInfo->color[2] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
 		clientInfo->color[3] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
+
+		firstRun = false;
 	}
 
 
-	bool popupOpen = false;
 	ImGui::OpenPopup("Connect to server");
 	popupOpen = ImGui::BeginPopupModal("Connect to server", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -111,7 +139,16 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		{
 			if (!(playerName.empty() || ipAddress.empty() || portNumber.empty() || playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8))
 			{
-				// Assign the color from imgui back to our string
+				// Assign colors to player
+				if (doColorNeedAdjustment)
+				{
+					clientInfo->color[0] = adjustedColor[0];
+					clientInfo->color[1] = adjustedColor[1];
+					clientInfo->color[2] = adjustedColor[2];
+					clientInfo->color[3] = adjustedColor[3];
+				}
+
+				// Assign the color from imgui back to our string to store it in a file later on
 				colorString.clear();
 				for (uint8_t i = 0; i < 4; i++)
 				{
@@ -152,6 +189,12 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		if (playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8)
 		{
 			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field is too big!");
+		}
+		if (doColorNeedAdjustment)
+		{
+			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "Due to lack of visibility, the color will be changed to ");
+			ImGui::SameLine();
+			ImGui::ColorEdit4("##disabledColorButton", adjustedColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoPicker);
 		}
 	}
 
