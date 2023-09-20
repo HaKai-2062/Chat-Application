@@ -107,7 +107,7 @@ protected:
 				messageHistoryBuffer.bufferSize = static_cast<uint32_t>(myFile.gcount());
 				msgHistory << messageHistoryBuffer;
 				MessageClient(client, msgHistory);
-				
+
 				// Clear our buffers and reset bufferSize
 				std::memset(messageHistoryBuffer.messageBuffer, '\0', sizeof(messageHistoryBuffer.messageBuffer));
 				msgHistory.body.clear();
@@ -138,13 +138,13 @@ protected:
 			std::ofstream myFile(fileName, std::ios::app);
 			if (myFile.is_open())
 			{
-				myFile << desc.name << "|"
+				myFile << desc.name << "\\"
 					<< std::setprecision(2)
-					<< desc.color[0] << '|'
-					<< desc.color[1] << '|'
-					<< desc.color[2] << '|'
+					<< desc.color[0] << '\\'
+					<< desc.color[1] << '\\'
+					<< desc.color[2] << '\\'
 					<< desc.color[3]
-					<< "|" << desc.message << "\n";
+					<< "\\" << desc.message << "\n";
 				myFile.close();
 			}
 			break;
@@ -161,6 +161,16 @@ int main()
 
 	ChatServer server(portNumber);
 	server.Start();
+
+	// Create a server database file if it doesnt exist
+	std::ifstream file(fileName);
+	if (file.fail())
+	{
+		std::ofstream newFile(fileName, std::ofstream::out | std::ofstream::trunc);
+		if (newFile.is_open())
+			newFile.close();
+	}
+	file.close();
 
 	while (true)
 	{

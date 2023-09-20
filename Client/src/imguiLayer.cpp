@@ -249,7 +249,7 @@ void ImGuiLayer::onImGuiRender()
 
 				// name|color.x|y|z|message				
 				// The message doesnt follow our condition so skip it
-				if (std::count(messageHistory.begin(), messageHistory.end(), '|') != 5)
+				if (std::count(messageHistory.begin(), messageHistory.end(), '\\') != 5)
 					continue;
 
 				char* colorAndMessage = nullptr;
@@ -260,14 +260,14 @@ void ImGuiLayer::onImGuiRender()
 				// if it does not fall under our format then simply skip that line by continue;
 				// it can be triggered when our history is being downloaded
 
-				name = strtok_s(messageHistory.data(), "|", &colorAndMessage);
+				name = strtok_s(messageHistory.data(), "\\", &colorAndMessage);
 
 				float color[4] =
 				{
-					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "|", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "|", &message)		, nullptr)
+					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
+					std::strtof(strtok_s(colorAndMessage, "\\", &message)		, nullptr)
 				};
 
 				ImGui::TextColored({ color[0],color[1],color[2],color[3] }, name);
@@ -420,13 +420,13 @@ void ImGuiLayer::processConsoleInput(char* messageBuffer)
 	std::ofstream myFile(fileName, std::ios::app);
 	if (myFile.is_open())
 	{
-		myFile << clientInfo->name << "|"
+		myFile << clientInfo->name << "\\"
 			<< std::setprecision(2)
-			<< clientInfo->color[0] << '|'
-			<< clientInfo->color[1] << '|'
-			<< clientInfo->color[2] << '|'
+			<< clientInfo->color[0] << '\\'
+			<< clientInfo->color[1] << '\\'
+			<< clientInfo->color[2] << '\\'
 			<< clientInfo->color[3]
-			<< "|" << messageBuffer << "\n";
+			<< "\\" << messageBuffer << "\n";
 		myFile.close();
 	}
 }
