@@ -7,7 +7,7 @@
 #include "olcPGEX/olcPGEX_Network.h"
 
 uint32_t clientID = 10000;
-const char* fileName = "secretChatHistory.txt";
+const char* fileName = "serverChat.txt";
 
 class ChatServer : public olc::net::server_interface<olc::net::ChatMsg>
 {
@@ -99,14 +99,23 @@ protected:
 			olc::net::messageHistory messageHistoryBuffer;
 			olc::net::message<olc::net::ChatMsg> msgHistory;
 			msgHistory.header.id = olc::net::ChatMsg::Server_MessageHistorySent;
+
+			// 256 KB limit
+			uint32_t byteReadLimit = 256'000;
+			uint32_t byteRead = 0;
+
 			std::ifstream myFile(fileName);
-			while(!myFile.eof())
+			while (!myFile.eof())
 			{
+				if (byteRead >= byteReadLimit)
+					break;
+
 				myFile.read(messageHistoryBuffer.messageBuffer, static_cast<std::streamsize>(messageHistoryBuffer.bufferSize - 1));
 				messageHistoryBuffer.messageBuffer[myFile.gcount()] = '\0';
 				messageHistoryBuffer.bufferSize = static_cast<uint32_t>(myFile.gcount());
 				msgHistory << messageHistoryBuffer;
 				MessageClient(client, msgHistory);
+				byteRead += messageHistoryBuffer.bufferSize;
 
 				// Clear our buffers and reset bufferSize
 				std::memset(messageHistoryBuffer.messageBuffer, '\0', sizeof(messageHistoryBuffer.messageBuffer));
