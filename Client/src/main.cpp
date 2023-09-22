@@ -19,7 +19,7 @@ void Load(std::string& playerName, std::string& ipAddress, std::string& portStri
 int main(int, char**)
 {
     std::string playerName = "", ipAddress = "127.0.0.1";
-    std::string portString = "60000", colorString = "1.0,1.0,1.0,1.0";
+    std::string portString = "60000", colorString = "1,1,1,1";
 
     // Load variables on application startup
     Load(playerName, ipAddress, portString, colorString);

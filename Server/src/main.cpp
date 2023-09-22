@@ -149,9 +149,9 @@ protected:
 			{
 				myFile << desc.name << "\\"
 					<< std::setprecision(2)
-					<< desc.color[0] << '\\'
-					<< desc.color[1] << '\\'
-					<< desc.color[2] << '\\'
+					<< desc.color[0] << ','
+					<< desc.color[1] << ','
+					<< desc.color[2] << ','
 					<< desc.color[3]
 					<< "\\" << desc.message << "\n";
 				myFile.close();

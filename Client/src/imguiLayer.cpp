@@ -112,7 +112,7 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 		clientInfo->color[0] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
 		clientInfo->color[1] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
 		clientInfo->color[2] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
-		clientInfo->color[3] = std::strtof(strtok_s(temp1, ",", &temp1), nullptr);
+		clientInfo->color[3] = std::strtof(temp1, nullptr);
 
 		firstRun = false;
 	}
@@ -137,7 +137,7 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 
 		if (ImGui::Button("Connect"))
 		{
-			if (!(playerName.empty() || ipAddress.empty() || portNumber.empty() || playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8))
+			if (!(playerName.empty() || ipAddress.empty() || portNumber.empty() || playerName.size() > 32 || ipAddress.size() > 32 || portNumber.size() > 8))
 			{
 				// Assign colors to player
 				if (doColorNeedAdjustment)
@@ -186,7 +186,7 @@ uint8_t ImGuiLayer::setupConnectionModal(std::string& playerName, std::string& i
 			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field can not be empty!");
 		}
 
-		if (playerName.size() > 16 || ipAddress.size() > 16 || portNumber.size() > 8)
+		if (playerName.size() > 32 || ipAddress.size() > 32 || portNumber.size() > 8)
 		{
 			ImGui::TextColored({ 0.8f, 0.0f, 0.0f, 1.0f }, "The field is too big!");
 		}
@@ -249,10 +249,11 @@ void ImGuiLayer::onImGuiRender()
 
 				// name|color.x|y|z|message				
 				// The message doesnt follow our condition so skip it
-				if (std::count(messageHistory.begin(), messageHistory.end(), '\\') != 5)
+				if (std::count(messageHistory.begin(), messageHistory.end(), '\\') != 2)
 					continue;
 
 				char* colorAndMessage = nullptr;
+				char* colorInComas = nullptr;
 				char* colorArray = nullptr;
 				char* message = nullptr;
 				char* name = nullptr;
@@ -261,13 +262,14 @@ void ImGuiLayer::onImGuiRender()
 				// it can be triggered when our history is being downloaded
 
 				name = strtok_s(messageHistory.data(), "\\", &colorAndMessage);
+				colorInComas = strtok_s(colorAndMessage, "\\", &message);
 
 				float color[4] =
 				{
-					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "\\", &colorAndMessage), nullptr),
-					std::strtof(strtok_s(colorAndMessage, "\\", &message)		, nullptr)
+					std::strtof(strtok_s(colorInComas, ",", &colorInComas), nullptr),
+					std::strtof(strtok_s(colorInComas, ",", &colorInComas), nullptr),
+					std::strtof(strtok_s(colorInComas, ",", &colorInComas), nullptr),
+					std::strtof(colorInComas, nullptr),
 				};
 
 				ImGui::TextColored({ color[0],color[1],color[2],color[3] }, name);
@@ -422,9 +424,9 @@ void ImGuiLayer::processConsoleInput(char* messageBuffer)
 	{
 		myFile << clientInfo->name << "\\"
 			<< std::setprecision(2)
-			<< clientInfo->color[0] << '\\'
-			<< clientInfo->color[1] << '\\'
-			<< clientInfo->color[2] << '\\'
+			<< clientInfo->color[0] << ','
+			<< clientInfo->color[1] << ','
+			<< clientInfo->color[2] << ','
 			<< clientInfo->color[3]
 			<< "\\" << messageBuffer << "\n";
 		myFile.close();
