@@ -28,6 +28,107 @@ bool scroll = true;
 bool scrollToBotton = false;
 bool show_demo_window = false;
 
+namespace ColorManagement
+{
+	struct ColorCode
+	{
+		float r, g, b, a;
+	};
+
+	void colorSelection(ColorCode& myColor, char selectedColor)
+	{
+		switch (selectedColor)
+		{
+		case '0':
+			myColor = { 0.5f, 0.0f, 0.0f, 1.0f };
+			break;
+		case '1':
+			myColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+			break;
+		case '2':
+			myColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+			break;
+		case '3':
+			myColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+			break;
+		case '4':
+			myColor = { 1.0f, 0.5f, 0.5f, 1.0f };
+			break;
+		case '5':
+			myColor = { 0.0f, 1.0f, 1.0f, 1.0f };
+			break;
+		case '6':
+			myColor = { 0.5f, 0.0f, 1.0f, 1.0f };
+			break;
+		case '7':
+			myColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			break;
+		case '8':
+			myColor = { 1.0f, 0.6f, 0.0f, 1.0f };
+			break;
+		case '9':
+			myColor = { 1.0f, 0.0f, 1.0f, 1.0f };
+			break;
+		default:
+			myColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+			break;
+		}
+	}
+
+	void createColoredImGuiText(char* message)
+	{
+		char buffer[128] = { 0 };
+		ColorCode myColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		bool hasColorBeenApplied = false;
+
+		uint32_t j = 0;
+		for (uint32_t i = 0; message[i] != '\0'; i++, j++)
+		{
+			if (message[i] == '^' && message[i + 1] != '\0' && message[i + 1] >= '0' && message[i + 1] <= '9')
+			{
+				// Apply color to previous buffer
+				if (buffer[0] != '\0')
+				{
+					ImGui::TextColored({ myColor.r, myColor.g, myColor.b, myColor.a }, buffer);
+					ImGui::SameLine();
+				}
+				
+				// Message ended and color at end does not matter so we break out
+				if (message[i + 2] == '\0')
+					break;
+				
+				memset(buffer, 0, sizeof(buffer));
+				j = 0;
+
+				if (isdigit(message[i + 1]))
+					colorSelection(myColor, message[i + 1]);
+
+				hasColorBeenApplied = true;
+
+				// Skip the number part of our color in our string
+				i++;
+			}
+			else
+			{
+				if (!hasColorBeenApplied)
+					buffer[j] = message[i];
+				else
+					buffer[j - 1] = message[i];
+
+				if (message[i + 1] == '\0')
+				{
+					if (!hasColorBeenApplied)
+						buffer[j + 1] = '\0';
+					else
+						buffer[j] = '\0';
+
+					ImGui::TextColored({ myColor.r, myColor.g, myColor.b, myColor.a }, buffer);
+				}
+			}
+		}
+	}
+}
+
 void ImGuiLayer::initializeImGui(GLFWwindow* window, const char* glsl_version)
 {
 	IMGUI_CHECKVERSION();
@@ -276,7 +377,7 @@ void ImGuiLayer::onImGuiRender()
 				ImGui::SameLine();
 				ImGui::TextUnformatted(":");
 				ImGui::SameLine();
-				ImGui::TextUnformatted(message);
+				ColorManagement::createColoredImGuiText(message);
 			}
 			myFile.close();
 		}
