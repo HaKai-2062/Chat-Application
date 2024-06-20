@@ -1,4 +1,5 @@
 # Chat Application
+![I1](https://raw.githubusercontent.com/HaKai-2062/Chat-Application/master/res/github/ChatApp.png)
 ### Features
 - A room where multiple clients can connect and exchange messages.
 - Colored messages can be sent by prefixing them using ^ and 0-9 number e.g. ^1Hello will print Hello in red color.
