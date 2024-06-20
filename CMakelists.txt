@@ -1,0 +1,48 @@
+cmake_minimum_required (VERSION 3.8)
+
+# Enable Hot Reload for MSVC compilers if supported.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
+
+project ("Server")
+
+add_executable (${CMAKE_PROJECT_NAME} "${CMAKE_PROJECT_NAME}/src/main.cpp")
+set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY CXX_STANDARD 20)
+target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC 
+"${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/asio_1_2_8/")
+
+project ("Client")
+
+# Add source to this project's executable.
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS 
+"${CMAKE_PROJECT_NAME}/src/*.cpp")
+add_executable (${CMAKE_PROJECT_NAME})
+
+target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${MY_SOURCES})
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/imgui")
+set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY CXX_STANDARD 20)
+
+if(MSVC) # If using the VS compiler...
+
+	set_target_properties(${BUILD_TARGET} PROPERTIES LINK_FLAGS "/PROFILE") # for profiling
+
+	#target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC _CRT_SECURE_NO_WARNINGS)		# secure function warnings
+
+	#set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup") #no console
+	
+	#set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDebug<$<CONFIG:Debug>:Debug>")
+	#set_property(TARGET "${CMAKE_PROJECT_NAME}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+
+endif()
+
+target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC 
+"${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/imgui/"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/asio_1_2_8/")
+
+target_link_libraries("${CMAKE_PROJECT_NAME}" PRIVATE "imgui")
