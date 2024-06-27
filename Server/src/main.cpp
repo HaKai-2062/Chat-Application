@@ -162,11 +162,19 @@ protected:
 	}
 };
 
-int main()
+int main(int argc, char** argv)
 {
-	std::cout << "Port: ";
 	uint32_t portNumber = 60'000;
-	std::cin >> portNumber;
+	
+	if (argc != 2)
+	{
+		std::cout << "Port: ";
+		std::cin >> portNumber;
+	}
+	else
+	{
+		portNumber = atoi(argv[1]);
+	}
 
 	ChatServer server(portNumber);
 	server.Start();
